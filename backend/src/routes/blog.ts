@@ -2,7 +2,6 @@ import { Hono } from "hono";
 import { PrismaClient } from '@prisma/client/edge'
 import { withAccelerate } from '@prisma/extension-accelerate'
 import { decode, sign, verify } from 'hono/jwt'
-import { useRevalidator } from "react-router-dom";
 
 export const blogRouter = new Hono<{
     Bindings: {
@@ -96,7 +95,18 @@ blogRouter.get('/bulk', async (c)=>{
     const prisma = new PrismaClient({
         datasourceUrl: c.env.DATABASE_URL,
     }).$extends(withAccelerate())
-    const blogs = await prisma.blog.findMany();
+    const blogs = await prisma.blog.findMany({
+        select: {
+            content: true,
+            title: true,
+            id: true,
+            author: {
+                select: {
+                    name: true
+                }
+            }
+        }
+    });
 
     return c.json({
         blogs
@@ -114,6 +124,16 @@ try {
     where: {
         id: id
     },
+    select: {
+        id: true,
+        title: true,
+        content: true,
+        author: {
+            select: {
+                name: true
+            }
+        }
+    }
   })
 
 return c.json({

@@ -3,8 +3,8 @@ import { PrismaClient } from '@prisma/client/edge'
 import { withAccelerate } from '@prisma/extension-accelerate'
 import { decode, sign, verify } from 'hono/jwt'
 import z from "zod";
-import { signinInput } from "@mukulkatewa/medium-common";
-import { signupInput } from "@mukulkatewa/medium-common";
+import { signinInput } from "@mukulkatewa/medium-blog-common";
+import { signupInput } from "@mukulkatewa/medium-blog-common";
 
 
 export const userRouter = new Hono<{
@@ -25,13 +25,13 @@ userRouter.post('/signup',async (c) => {
   try{
   const body = await c.req.json();
   console.log("Body received:", body);
-  // const { success } = signupInput.safeParse(body);
+  const { success } = signupInput.safeParse(body);
   
-  // if(!success) {
-  //   return c.json({
-  //     message: "Inputs not correct"
-  //   }, 400)
-  // }
+  if(!success) {
+    return c.json({
+      message: "Inputs not correct"
+    }, 400)
+  }
 
   const user = await prisma.user.create({
     data: {
@@ -60,12 +60,12 @@ userRouter.post('/signin',async (c)=>{
 
   const body = await c.req.json();
 
-  // const { success } = signinInput.safeParse(body);
-  // if(!success) {
-  //   return c.json({
-  //     message: "Invalid input format"
-  //   }, 411);
-  // }
+  const { success } = signinInput.safeParse(body);
+  if(!success) {
+    return c.json({
+      message: "Invalid input format"
+    }, 411);
+  }
 
   const user = await prisma.user.findUnique({
     where: {
